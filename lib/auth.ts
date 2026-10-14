@@ -3,11 +3,11 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
+export const COOKIE_NAME = "framemarket_token";
+
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "framemarket-super-secret-jwt-key-change-in-production-32bytes"
 );
-
-const COOKIE_NAME = "framemarket_token";
 
 export interface SessionPayload {
   userId: string;
@@ -89,23 +89,31 @@ export async function getSessionUser(): Promise<{
 }
 
 export function setSessionCookie(token: string) {
-  const cookieStore = cookies();
-  cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
+  try {
+    const cookieStore = cookies();
+    cookieStore.set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+  } catch (e) {
+    // Ignore in non-mutable contexts
+  }
 }
 
 export function clearSessionCookie() {
-  const cookieStore = cookies();
-  cookieStore.set(COOKIE_NAME, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+  try {
+    const cookieStore = cookies();
+    cookieStore.set(COOKIE_NAME, "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+  } catch (e) {
+    // Ignore in non-mutable contexts
+  }
 }

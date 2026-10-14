@@ -4,6 +4,8 @@ import { getSessionUser } from "@/lib/auth";
 import { generateOrderNumber, processCompletedOrder } from "@/lib/payments";
 import { calculateFinancials } from "@/lib/currency";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser();

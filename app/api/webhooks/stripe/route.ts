@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { processCompletedOrder } from "@/lib/payments";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

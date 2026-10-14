@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyPassword, createToken, setSessionCookie } from "@/lib/auth";
+import { verifyPassword, createToken, COOKIE_NAME } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
@@ -38,9 +40,7 @@ export async function POST(req: Request) {
       name: user.name,
     });
 
-    setSessionCookie(token);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -57,6 +57,16 @@ export async function POST(req: Request) {
           : null,
       },
     });
+
+    response.cookies.set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "Authentication failed. Please try again." }, { status: 500 });

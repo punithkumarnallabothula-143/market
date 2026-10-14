@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { hashPassword, createToken, setSessionCookie } from "@/lib/auth";
+import { hashPassword, createToken, COOKIE_NAME } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
@@ -57,9 +59,7 @@ export async function POST(req: Request) {
       name: newUser.name,
     });
 
-    setSessionCookie(token);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: newUser.id,
@@ -69,6 +69,16 @@ export async function POST(req: Request) {
         creatorProfile: newUser.creatorProfile,
       },
     });
+
+    response.cookies.set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json({ error: "Registration failed. Please try again." }, { status: 500 });
